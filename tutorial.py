@@ -4,6 +4,7 @@ import sys
 from os import listdir
 from os.path import isfile, join
 from pygame import mixer
+
 pygame.init()
 
 pygame.display.set_caption("Jump the block")
@@ -13,23 +14,31 @@ FPS = 60
 PLAYER_VEL = 5
 
 window = pygame.display.set_mode((WIDTH, HEIGHT))
+
+
 ##
-#mixer.music.load('mario.mp3')
-#mixer.music.play(-1)#
+# mixer.music.load('mario.mp3')
+# mixer.music.play(-1)#
 
 def start_menu(screen):
-    global run
+    r = False
     image = pygame.image.load(join('assets', 'Menu', 'gameover.png')).convert_alpha()
-    screen.blit(image, (0,0))
-    while True:
+    screen.blit(image, (0, 0))
+
+    while not r:
+        pygame.display.flip()
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-    
-            if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
-                run = True
+                break
+
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                r = True
+                print("hello")
+                return r
+
 
 # flip sprites
 def flip(sprites):
@@ -102,7 +111,6 @@ class Player(pygame.sprite.Sprite):
         self.hearts -= damage
         if self.hearts == 0:
             quit()
-
 
     # trigger when pressing spacebar
     def jump(self):
@@ -216,13 +224,17 @@ class Block(Object):
         block = get_block(size, type_sprite_pos)
         self.image.blit(block, (0, 0))
         self.mask = pygame.mask.from_surface(self.image)
+
+
 class Spike(Object):
-    def __init__(self,x,y,width,height):
-        super().__init__(x,y,width,height,"spike")
-        self.image = pygame.transform.scale2x(pygame.image.load(join("assets", "Traps", "Spikes","Idle.png")))
+    def __init__(self, x, y, width, height):
+        super().__init__(x, y, width, height, "spike")
+        self.image = pygame.transform.scale2x(pygame.image.load(join("assets", "Traps", "Spikes", "Idle.png")))
+
     def loop(self):
         self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
         self.mask = pygame.mask.from_surface(self.image)
+
 
 class Saw(Object):
     def __init__(self, x, y, width, height):
@@ -232,23 +244,30 @@ class Saw(Object):
     def loop(self):
         self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
         self.mask = pygame.mask.from_surface(self.image)
+
+
 class Start(Object):
-    def __init__(self,x,y,width,height):
-        super().__init__(x,y,width,height,"start")
-        self.image = pygame.transform.scale2x(pygame.image.load(join("assets", "Items","Checkpoints", "Start","Idle.png")))
-    def loop(self):
-        self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
-        self.mask = pygame.mask.from_surface(self.image)
-class End(Object):
-    def __init__(self,x,y,width,height):
-        super().__init__(x,y,width,height,"end")
-        self.image = pygame.transform.scale2x(pygame.image.load(join("assets", "Items","Checkpoints", "End","Idle.png")))
+    def __init__(self, x, y, width, height):
+        super().__init__(x, y, width, height, "start")
+        self.image = pygame.transform.scale2x(
+            pygame.image.load(join("assets", "Items", "Checkpoints", "Start", "Idle.png")))
+
     def loop(self):
         self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
         self.mask = pygame.mask.from_surface(self.image)
 
-class Fruit(Object):
-    pass
+
+class End(Object):
+    def __init__(self, x, y, width, height):
+        super().__init__(x, y, width, height, "end")
+        self.image = pygame.transform.scale2x(
+            pygame.image.load(join("assets", "Items", "Checkpoints", "End", "Idle.png")))
+
+    def loop(self):
+        self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+        self.mask = pygame.mask.from_surface(self.image)
+
+
 
 
 class Fire(Object):
@@ -324,7 +343,6 @@ def handle_vertical_collision(player, objects, dy):
                 collided_objects.append(obj)
                 break
 
-
             # elif dy < 0:
             #     player.rect.top = obj.rect.bottom
             #     player.hit_head()
@@ -392,8 +410,6 @@ def handle_move(player, objects, traps):
             quit()
 
 
-
-
 def make_level(layout):
     objects = []
     traps = []
@@ -408,17 +424,17 @@ def make_level(layout):
                 objects.append(tile)
             elif cell == 'S':
                 if layout[row_index + 1][column_index] == 'X':
-                    tile = Spike(x+32, y + 64, 16, 32)
+                    tile = Spike(x + 32, y + 64, 16, 32)
                     traps.append(tile)
             elif cell == 's':
                 tile = Saw(x, y + 2, 32, 32)
                 traps.append(tile)
 
             elif cell == 'c':
-                tile = Start(x+32, y - 15, 32, 32)
+                tile = Start(x + 32, y - 15, 32, 32)
                 traps.append(tile)
             elif cell == 'e':
-                tile = End(x + 4, y -15, 32, 32)
+                tile = End(x + 4, y - 15, 32, 32)
                 traps.append(tile)
             elif cell == 'a':
                 tile = Fruit(x, y + 32, 16, 32)
@@ -432,22 +448,19 @@ def make_level(layout):
                 if (0 < row_index and layout[row_index - 1][column_index] != 'X'):
                     tile_size = (96, 0)
 
-
                 tile = Block(x, y, (settings.tile_size, settings.tile_size), tile_size)
                 objects.append(tile)
 
             elif cell == 'F':
-                    tile = Fire(x, y + 32, 16, 32)
-                    traps.append(tile)
-
-
+                tile = Fire(x, y + 32, 16, 32)
+                traps.append(tile)
 
     return objects, traps
 
 
 def main(window):
-    global run
-    start_menu(window)
+    run = start_menu(window)
+    print('hello bitch')
     clock = pygame.time.Clock()
     background = get_background()
 
@@ -456,7 +469,7 @@ def main(window):
 
     offset_x = 0
     scroll_area_width = 200
-    run = False
+
     while run:
         # print(player.y_vel)
         clock.tick(FPS)
