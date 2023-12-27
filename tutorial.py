@@ -1,7 +1,6 @@
-import threading
-
 import pygame
 import settings
+import sys
 from os import listdir
 from os.path import isfile, join
 from pygame import mixer
@@ -18,6 +17,19 @@ window = pygame.display.set_mode((WIDTH, HEIGHT))
 #mixer.music.load('mario.mp3')
 #mixer.music.play(-1)#
 
+def start_menu(screen):
+    global run
+    image = pygame.image.load(join('assets', 'Menu', 'gameover.png')).convert_alpha()
+    screen.blit(image, (0,0))
+    while True:
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+    
+            if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
+                run = True
 
 # flip sprites
 def flip(sprites):
@@ -234,10 +246,9 @@ class End(Object):
     def loop(self):
         self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
         self.mask = pygame.mask.from_surface(self.image)
+
 class Fruit(Object):
-    
-
-
+    pass
 
 
 class Fire(Object):
@@ -435,6 +446,8 @@ def make_level(layout):
 
 
 def main(window):
+    global run
+    start_menu(window)
     clock = pygame.time.Clock()
     background = get_background()
 
@@ -443,7 +456,7 @@ def main(window):
 
     offset_x = 0
     scroll_area_width = 200
-    run = True
+    run = False
     while run:
         # print(player.y_vel)
         clock.tick(FPS)
